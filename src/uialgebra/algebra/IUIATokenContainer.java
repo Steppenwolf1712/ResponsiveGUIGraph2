@@ -19,4 +19,6 @@ public interface IUIATokenContainer {
     public UIATokenEdge getEdge_Left();
 
     public UIATokenEdge getEdge_Right();
+
+    boolean checkSoundness();
 }

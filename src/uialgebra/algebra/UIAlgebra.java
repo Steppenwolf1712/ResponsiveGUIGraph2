@@ -80,9 +80,7 @@ public class UIAlgebra {
             return true;
 
         // TODO: Here is the place for checking the soundness of the Interface definition with the UIAStringChecker
-
-
-        m_isSound = true;
+        m_isSound = m_tokenContainer.checkSoundness();
 
         return m_isSound;
     }

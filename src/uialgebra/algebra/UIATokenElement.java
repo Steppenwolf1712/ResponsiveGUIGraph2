@@ -104,7 +104,7 @@ public class UIATokenElement extends UIAToken {
         HashSet<UIATokenElement> erg = new HashSet<UIATokenElement>();
         erg.add(this);
         if (!getTop().isLastEdge())
-            for (UIATokenElement elem: getLeft().getLeftsideElements())
+            for (UIATokenElement elem: getTop().getLeftsideElements())
                 erg.addAll(elem.getAllTop());
         return erg;
     }

@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ResponsiveGUIGraph:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/ResponsiveGUIGraph_jar</output-path>
+    <root id="archive" name="ResponsiveGUIGraph.jar">
+      <element id="module-output" name="ResponsiveGUIGraph" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/alm-core.0.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/swing-1.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

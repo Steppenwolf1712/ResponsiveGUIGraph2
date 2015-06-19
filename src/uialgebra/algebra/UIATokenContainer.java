@@ -37,6 +37,27 @@ public class UIATokenContainer implements IUIATokenContainer {
         return m_Edge_Right;
     }
 
+    @Override
+    public boolean checkSoundness() {
+        boolean erg = false;
+
+        System.out.println("\nSoundness-Check: ");
+        UIATokenElement[] array = getElements();
+        int sizeToCompare = array.length, temp=0;
+        for (UIATokenElement elem: array) {
+            temp = elem.getAreasVisibleFrom().length;
+
+            System.out.println("\tUIATokenContainer: Count of Visible-Token from Element("+elem.getId()+") = "+temp+"\n\t\tshould be "+sizeToCompare);
+
+            if (temp<sizeToCompare)
+                return false;
+            else
+                erg = true;
+        }
+
+        return erg;
+    }
+
     private void init() {
         m_ElementMap = new HashMap<String, UIATokenElement>();
         m_EdgeMap = new HashMap<String, UIATokenEdge>();
@@ -112,8 +133,6 @@ public class UIATokenContainer implements IUIATokenContainer {
 
         addEdgeToElement(elem, halfEdge);
     }
-
-    private int test = 1;
 
     private void addEdgeToElement(UIATokenElement elem, IUIATokenHE halfEdge) {
         UIATokenEdge edge = m_EdgeMap.get(halfEdge.getEdgeID());
