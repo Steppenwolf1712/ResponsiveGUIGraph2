@@ -14,6 +14,7 @@ public class GUIGrid implements IGUIGrid {
     private Map<Double[], UIAPanel> panelMap = null;
 
 
+
     public GUIGrid(UIAPanel panel) {
         this(panel, panel.getOptimalSize().getWidth(), panel.getOptimalSize().getHeight());
         panelMap = new HashMap<Double[], UIAPanel>();
