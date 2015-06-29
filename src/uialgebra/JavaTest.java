@@ -4,6 +4,7 @@ import uialgebra.Exceptions.MalFormedUIA_Exception;
 import uialgebra.algebra.UIATokenHE;
 import uialgebra.algebra.UIAlgebra;
 import uialgebra.editor.UIAEditor;
+import uialgebra.responsiveGUIGraph.ResponsiveGUIEditor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -69,11 +70,17 @@ public class JavaTest extends JFrame {
 
         //tester.AlgebraTest();
 
-        new UIAEditor();
+        //new UIAEditor();
 
         //algebraWindow();
 
         //pinWheelWindow();
+
+        showResponsiveGUIGraph();
+    }
+
+    private static void showResponsiveGUIGraph() {
+        new ResponsiveGUIEditor();
     }
 
     private static void algebraWindow() {

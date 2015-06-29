@@ -18,7 +18,7 @@ public class UIAPlaceHolder extends JButton implements MouseListener {
     private JFrame m_parent = null;
     private ALMLayout m_layout = null;
 
-    private static final Dimension STARTING_DIMENSION = new Dimension(100, 100);
+    //private static final Dimension STARTING_DIMENSION = new Dimension(100, 100);
 
     public UIAPlaceHolder(JFrame parent, ALMLayout layout, String id) {
         super(id);
@@ -31,17 +31,12 @@ public class UIAPlaceHolder extends JButton implements MouseListener {
 
 
     private void init() {
-        this.setSize(STARTING_DIMENSION);
+        //this.setSize(STARTING_DIMENSION);
         this.addMouseListener(this);
     }
 
     void setPlaceHolderContent(JComponent content) {
-        //m_Area.remove();//there is no method to remove the content of an Area
-        //m_Area.setContent(content);
-
-        // TODO: Neue Implementierung des Contents-Wechsel einer Area
         Area temp = m_layout.areaOf(this);
-
         m_parent.remove(this);
 
         //m_layout.removeLayoutComponent(this);
@@ -73,7 +68,8 @@ public class UIAPlaceHolder extends JButton implements MouseListener {
         JComponent temp = chooser.getChoosenComponent();
 
         if (temp != null) {
-           setPlaceHolderContent(temp);
+            setPlaceHolderContent(temp);
+            m_parent.validate();
         } else {
             System.out.println("UIAPlaceHolder_ActionListener: The choosen element couldn't replace the current content " +
                     "of the area. The cause is either a bad definition at the ComponentChooser or a missing Area-pointer at this Listener.");
@@ -83,7 +79,7 @@ public class UIAPlaceHolder extends JButton implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
-            startEditMode();
+            //startEditMode();// TODO: Some mechanism to add constrains
         } else if (e.getButton() == MouseEvent.BUTTON3)
             changeComponent(e);
     }

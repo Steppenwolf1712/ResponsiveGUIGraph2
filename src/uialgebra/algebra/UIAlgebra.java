@@ -75,11 +75,16 @@ public class UIAlgebra {
         return false;
     }
 
+    /**
+     * Checking the Soundness of an resulting Interface. If there is an overlapping, or if there is an overlapping possible,
+     * it returns false. If the String isn't readout yet, it returns false either.
+     *
+     * @return
+     */
     private boolean checkSoundness() {
         if (m_isSound)
             return true;
 
-        // TODO: Here is the place for checking the soundness of the Interface definition with the UIAStringChecker
         m_isSound = m_tokenContainer.checkSoundness();
 
         return m_isSound;
