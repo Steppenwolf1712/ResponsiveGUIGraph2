@@ -1,4 +1,4 @@
-package uialgebra;
+package uialgebra.responsiveGUIGraph.graph.subFrames;
 
 /**
  * Created by Marc Janßen on 08.06.2015.

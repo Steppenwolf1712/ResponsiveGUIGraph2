@@ -45,7 +45,7 @@ public class Vector2D extends Point {
         return Math.sqrt(z);
     }
 
-    public Vector2D getNormalvector() {
+    public Vector2D getNormalVector() {
         return new Vector2D(-this.m_y,this.m_x);
     }
 

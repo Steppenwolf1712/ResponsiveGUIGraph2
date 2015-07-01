@@ -32,14 +32,17 @@ public class ResponsiveGUIGraph extends JPanel {
     public static int MAX_SCALE = 5;
     private int m_xScale = 5;
     private int m_yScale = 5;
+    private Vector2D m_Scale = new Vector2D(m_xScale, m_yScale);
     static final int I_BORDER_GAP_X = 30;
     static final int I_BORDER_GAP_Y = 20;
+    static final Vector2D BORDER_GAP = new Vector2D(I_BORDER_GAP_X, I_BORDER_GAP_Y);
 
     private LineDrawer m_LineDrawer = null;
 
     private DelaunyTriangle m_Delauny = null;
 
     private static ResponsiveGUIGraph single = null;
+    private boolean m_drawDelauny = false;
 
     private ResponsiveGUIGraph() {
         init();
@@ -71,12 +74,11 @@ public class ResponsiveGUIGraph extends JPanel {
         ResponsiveGUIGraph_Point temp = new ResponsiveGUIGraph_Point(this, toAdd);
         this.m_points.add(temp);
 
-        if (m_points.size() == 3 && m_Delauny==null)
+        if (m_points.size() == 2 && m_Delauny==null)
             calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
-                    new Vector2D(m_points.get(1).getDesiredSize()),
-                    new Vector2D(m_points.get(2).getDesiredSize()));
+                    new Vector2D(m_points.get(1).getDesiredSize()));
         else
-        if (m_points.size() > 3 && !(m_Delauny==null))
+        if (m_points.size() > 2 && !(m_Delauny==null))
             addDelauny(new Vector2D(temp.getDesiredSize()));
 
         this.repaint();
@@ -94,17 +96,32 @@ public class ResponsiveGUIGraph extends JPanel {
         ResponsiveGUIGraph_Point temp = new ResponsiveGUIGraph_Point(this, toAdd, alm_Container);
         this.m_points.add(temp);
 
-        if (m_points.size() == 3 && m_Delauny==null)
+        if (m_points.size() == 2 && m_Delauny==null)
             calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
-                    new Vector2D(m_points.get(1).getDesiredSize()),
-                    new Vector2D(m_points.get(2).getDesiredSize()));
+                    new Vector2D(m_points.get(1).getDesiredSize()));
         else
-            if (m_points.size() > 3 && !(m_Delauny==null))
+            if (m_points.size() > 2 && !(m_Delauny==null))
                 addDelauny(new Vector2D(temp.getDesiredSize()));
 
         this.repaint();
     }
 
+    public boolean remove(ResponsiveGUIGraph_Point point) {
+        boolean erg = m_points.remove(point);
+
+        if (erg) {
+            repaint();
+            if (m_point_selected.equals(point)) {
+                m_point_selected = null;
+            }
+            if (m_points.size()>=2)
+                calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
+                        new Vector2D(m_points.get(1).getDesiredSize()));
+            else
+                this.m_Delauny = null;
+        }
+        return erg;
+    }
 
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -114,7 +131,7 @@ public class ResponsiveGUIGraph extends JPanel {
 
         Vector2D relPos = new Vector2D(I_BORDER_GAP_X, getHeight()-I_BORDER_GAP_Y);
         Vector2D scale = new Vector2D(m_xScale,m_yScale);
-        Vector2D max_Size = new Vector2D(getWidth(), getHeight()).sub(new Vector2D(2*I_BORDER_GAP_X, 2*I_BORDER_GAP_Y)).mult(scale);
+        Vector2D max_Size = new Vector2D(getWidth(), getHeight()).sub(BORDER_GAP.mult(2)).mult(scale);
 
         if (m_LineDrawer==null)
             m_LineDrawer = new LineDrawer(g2, relPos, scale, max_Size);
@@ -190,7 +207,7 @@ public class ResponsiveGUIGraph extends JPanel {
         g2.setStroke(DELAUNY_STROKE);
         g2.setColor(COLOR_LINE);
 
-        if (m_points.size()==2) {
+        /*if (m_points.size()==2) {
             drawLineBetween(new Vector2D(m_points.get(0).getDesiredSize()),
                     new Vector2D(m_points.get(1).getDesiredSize()));
         } else {
@@ -201,6 +218,12 @@ public class ResponsiveGUIGraph extends JPanel {
                             new Vector2D(m_points.get(2).getDesiredSize()));
                 drawDelauny();
             }
+        }*/
+        if (m_points.size() >= 2) {
+            if (m_Delauny == null)
+                calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
+                        new Vector2D(m_points.get(1).getDesiredSize()));
+            drawDelauny();
         }
         g2.setColor(temp);
     }
@@ -219,21 +242,19 @@ public class ResponsiveGUIGraph extends JPanel {
         middle = middle.mult(0.5);
 
         double step;
-        try {
-            step = point1.sub(point0).getSlope();//point1.x - point0.x) / (point1.y - point0.y);
-            step = -1 / step;
-        } catch (ArithmeticException ex) {
-            Vector2D left = new Vector2D(0,middle.getY()), right = new Vector2D(getWidth()-2*I_BORDER_GAP_X, middle.getY());
 
-            m_LineDrawer.drawLine(left, right);
+        step = point1.sub(point0).getSlope();//point1.x - point0.x) / (point1.y - point0.y);
+        if (Double.NEGATIVE_INFINITY == step || Double.POSITIVE_INFINITY == step) {
+            m_LineDrawer.drawLine(middle.mult(new Vector2D(0.0, 1.0)), new Vector2D((getWidth() -(2*I_BORDER_GAP_X))* m_xScale,middle.getY()));
             //g2.drawLine(I_BORDER_GAP_X, getHeight()-I_BORDER_GAP_Y-middle.y, getWidth()-I_BORDER_GAP_X, getHeight()-I_BORDER_GAP_Y-middle.y);
             return;
         }
         Vector2D p1, p2;
         if (step == 0) {
             p1 = new Vector2D(middle.getX(), 0);
-            p2 = new Vector2D(middle.getX(), getHeight()-2*I_BORDER_GAP_Y);
+            p2 = new Vector2D(middle.getX(), (getHeight()-2*I_BORDER_GAP_Y)*m_yScale);
         } else {
+            step = -1 / step;
 
             double b = middle.getY()-step*middle.getX();
             int maxH = getHeight()-2*I_BORDER_GAP_Y;
@@ -273,33 +294,15 @@ public class ResponsiveGUIGraph extends JPanel {
         //VectorHelper.drawLineOnGraph(g2, p1, p2);
     }
 
-
-    public boolean remove(ResponsiveGUIGraph_Point point) {
-        boolean erg = m_points.remove(point);
-
-        if (erg) {
-            repaint();
-            if (m_point_selected.equals(point)) {
-                m_point_selected = null;
-            }
-            if (m_points.size()>=3)
-                calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
-                        new Vector2D(m_points.get(1).getDesiredSize()),
-                        new Vector2D(m_points.get(2).getDesiredSize()));
-            else
-                this.m_Delauny = null;
-        }
-        return erg;
-    }
-
     public void setScale(int new_scale) {
         if (new_scale>MAX_SCALE || new_scale<0)
             return;
         this.m_xScale = new_scale;
         this.m_yScale = new_scale;
+        this.m_Scale = new Vector2D(m_xScale, m_yScale);
         Vector2D scale = new Vector2D(this.m_xScale, this.m_yScale);
         m_LineDrawer.setScale(scale);
-        m_LineDrawer.setMaxValues(new Vector2D(DIM_SIZE).mult(scale));
+        m_LineDrawer.setMaxValues(new Vector2D(DIM_SIZE).sub(BORDER_GAP.mult(2)).mult(scale));
         repaint();
     }
 
@@ -309,8 +312,12 @@ public class ResponsiveGUIGraph extends JPanel {
     }
 
     public Point getPositionInGraph(int x, int y) {
-        Point erg = new Point(calcX(x), calcY(y));
-        return erg;
+        Vector2D relPos = new Vector2D(-I_BORDER_GAP_X,getHeight()-I_BORDER_GAP_Y);
+        Vector2D erg = relPos.add(new Point(x, -y)).mult(m_Scale);
+        Vector2D maxValues = new Vector2D(DIM_SIZE).sub(BORDER_GAP.mult(2));
+        if (new Vector2D().smallerEquals(erg) || maxValues.greaterEquals(erg))
+            return erg;
+        return new Vector2D();
     }
 
     private int calcX(int x) {
@@ -367,6 +374,10 @@ public class ResponsiveGUIGraph extends JPanel {
         m_Delauny = DelaunyTriangle_Factory.createDelaunyTriangle(point1, point2, point3);
     }
 
+    private void calcDelauny(Vector2D point1, Vector2D point2) {
+        m_Delauny = DelaunyTriangle_Factory.createDelaunyTriangle(point1, point2);
+    }
+
     private void addDelauny(Vector2D point) {
         if (this.m_Delauny != null)
             this.m_Delauny.addPoint(point);
@@ -380,13 +391,14 @@ public class ResponsiveGUIGraph extends JPanel {
     private void drawDelauny() {
         //this.m_Delauny.drawDelauny(this.m_LineDrawer);//For testing the DelaunyTriangulation
         this.m_Delauny.drawVoronoiDiagram(this.m_LineDrawer);
-        //m_LineDrawer.changeColor(new Color(255,0,0,255));
-        //this.m_Delauny.drawDelauny(this.m_LineDrawer);//For testing the DelaunyTriangulation
+        if (m_drawDelauny) {
+            m_LineDrawer.changeColor(new Color(255,0,0,255));
+            this.m_Delauny.drawDelauny(this.m_LineDrawer);//For testing the DelaunyTriangulation
+        }
     }
 
     public void showKontextMenu(MouseEvent event) {
         //Point locationOnScreen = event.getLocationOnScreen();
-        System.out.println("Hello");
         KontextMenu menu = new KontextMenu(this, m_point_selected);
         menu.show(event.getComponent(), event.getX(), event.getY());
         //menu.setLocation(locationOnScreen.x, locationOnScreen.y);

@@ -3,7 +3,7 @@ package uialgebra.algebra;
 import nz.ac.auckland.alm.*;
 import nz.ac.auckland.alm.swing.ALMLayout;
 import nz.ac.auckland.linsolve.Variable;
-import uialgebra.UIAPlaceHolder;
+import uialgebra.responsiveGUIGraph.graph.subFrames.UIAPlaceHolder;
 
 import javax.swing.*;
 import java.util.HashMap;

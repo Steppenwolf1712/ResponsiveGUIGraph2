@@ -1,4 +1,4 @@
-package uialgebra;
+package uialgebra.responsiveGUIGraph.graph.subFrames;
 
 import javax.swing.*;
 import java.awt.*;

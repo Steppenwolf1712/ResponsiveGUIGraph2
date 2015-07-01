@@ -1,4 +1,4 @@
-package uialgebra;
+package uialgebra.responsiveGUIGraph.graph.subFrames;
 
 
 import nz.ac.auckland.alm.Area;

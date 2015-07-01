@@ -80,21 +80,22 @@ public class LineDrawer {
 
         if (sorted_one.greaterEquals(new Vector2D()) && m_MaxValues.getY()>=sorted_one.getY()) {
             if (m_MaxValues.greaterEquals(sorted_two)&&sorted_two.getY()>=0) {
-                Vector2D transformed1 = sorted_one.mult(m_Scale).add(m_relativePos);
-                Vector2D transformed2 = sorted_two.mult(m_Scale).add(m_relativePos);
+                //Vector2D transformed1 = sorted_one.mult(m_Scale).add(m_relativePos);
+                //Vector2D transformed2 = sorted_two.mult(m_Scale).add(m_relativePos);
                 draw(sorted_one, sorted_two);
             } else {
-                if (sorted_one.getY()>m_MaxValues.getY()) {
-                    System.out.println("CRASH 2!!!!");
-                    return true; //Not completely right but good enough (Not Really)
-                }
                 Vector2D cutAtRight = new Vector2D(m_MaxValues.getX(),(sorted_one.getY()+slope*(m_MaxValues.getX()-sorted_one.getX())));
 
                 if (cutAtRight.getY()>m_MaxValues.getY()) {
                     Vector2D cutAtTop = new Vector2D(sorted_one.getX()+(m_MaxValues.getY()-sorted_one.getY())/slope,m_MaxValues.getY());
+                    if (cutAtTop.getX()>m_MaxValues.getX()) {
+                        return true;
+                    }
                     draw(sorted_one, cutAtTop);
                 } else if (cutAtRight.getY()<0) {
                     Vector2D cutAtBottom = new Vector2D(sorted_one.getX()-sorted_one.getY()/slope, 0.0);
+                    if (cutAtBottom.getX()>m_MaxValues.getX())
+                        return true;
                     draw(sorted_one, cutAtBottom);
                 } else {
                     draw(sorted_one, cutAtRight);
@@ -102,24 +103,40 @@ public class LineDrawer {
 
             }
         } else {
-            if (m_MaxValues.greaterEquals(sorted_two)) {
-                if (sorted_two.getY()<0.0) {
-                    System.out.println("CRASH 3!!!!");
-                    return true;//High possibility that this line is not necessary
-                }
+            if (m_MaxValues.greaterEquals(sorted_two) && sorted_two.getY()>0.0) {
                 Vector2D cutAtLeft = new Vector2D(0.0, sorted_one.getY()-slope*sorted_one.getX());
 
                 if (cutAtLeft.getY()>m_MaxValues.getY()) {
                     Vector2D cutAtTop = new Vector2D(sorted_two.getX()+(m_MaxValues.getY()-sorted_two.getY())/slope,m_MaxValues.getY());
+                    if (cutAtTop.getX()<0.0)
+                        return true;
                     draw(cutAtTop, sorted_two);
                 } else if (cutAtLeft.getY()<0.0) {
                     Vector2D cutAtBottom = new Vector2D(sorted_two.getX()-sorted_two.getY()/slope, 0.0);
+                    if (cutAtBottom.getX()<0.0)
+                        return true;
                     draw(cutAtBottom, sorted_two);
                 } else
                     draw(cutAtLeft, sorted_two);
 
             } else {
-                System.out.println("CRASH 4!!!!");
+                Vector2D cutAtLeft = new Vector2D(0.0, sorted_one.getY()-slope*sorted_one.getX()), finalPoint1;
+                if (cutAtLeft.getY()>m_MaxValues.getY()) {
+                    finalPoint1 = new Vector2D(sorted_one.getX()+(m_MaxValues.getY()-sorted_one.getY())/slope,m_MaxValues.getY());
+                } else if (cutAtLeft.getY()<0.0) {
+                    finalPoint1 = new Vector2D(sorted_one.getX()-sorted_one.getY()/slope, 0.0);
+                } else
+                    finalPoint1 = cutAtLeft;
+
+                Vector2D cutAtRight = new Vector2D(m_MaxValues.getX(),(sorted_one.getY()+slope*(m_MaxValues.getX()-sorted_one.getX()))), finalPoint2;
+                if (cutAtRight.getY()>m_MaxValues.getY()) {
+                    finalPoint2 = new Vector2D(sorted_one.getX()+(m_MaxValues.getY()-sorted_one.getY())/slope,m_MaxValues.getY());
+                } else if (cutAtRight.getY()<0.0) {
+                    finalPoint2 = new Vector2D(sorted_one.getX()-sorted_one.getY()/slope, 0.0);
+                } else
+                    finalPoint2 = cutAtRight;
+
+                draw(finalPoint1,finalPoint2);
                 //Possible, that the line doesn't have to be drawn, so I ignore this case
                 //Especially because one of the Points lies probably outside of the graph
             }

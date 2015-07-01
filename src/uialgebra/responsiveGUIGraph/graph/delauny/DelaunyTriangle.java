@@ -57,6 +57,10 @@ public class DelaunyTriangle {
      */
     public void addPoint(Vector2D orig_vertic) {
         if (is_Final()) {
+            if (pointOnEdge(orig_vertic)) {
+                return;
+            }
+
             DelaunyTriangle ABZ = new DelaunyTriangle(m_vec_a, m_vec_b, orig_vertic);
             ABZ.setNeighbor(orig_vertic, getNeighbor(m_vec_c));
             m_listOfReplacements.add(ABZ);
@@ -90,6 +94,140 @@ public class DelaunyTriangle {
                 }
             }
         }
+    }
+
+    private boolean pointOnEdge(Vector2D toAdd) {
+        Vector2D AB = m_vec_b.sub(m_vec_a).getNormalisation();
+        Vector2D BC = m_vec_c.sub(m_vec_b).getNormalisation();
+        Vector2D CA = m_vec_a.sub(m_vec_c).getNormalisation();
+
+        Vector2D AO = toAdd.sub(m_vec_a).getNormalisation();
+        Vector2D BO = toAdd.sub(m_vec_b).getNormalisation();
+        Vector2D CO = toAdd.sub(m_vec_c).getNormalisation();
+
+        if (AB.equals(AO)) {
+            DelaunyTriangle ACZ = new DelaunyTriangle(m_vec_a, m_vec_c, toAdd);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            ACZ.setNeighbor(toAdd, getNeighbor(m_vec_b));
+            m_listOfReplacements.add(ACZ);
+
+            DelaunyTriangle BCZ = new DelaunyTriangle(m_vec_b, m_vec_c, toAdd);
+            //BCZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            BCZ.setNeighbor(m_vec_b, ACZ);
+            BCZ.setNeighbor(toAdd, getNeighbor(m_vec_a));
+            m_listOfReplacements.add(BCZ);
+
+            ACZ.setNeighbor(m_vec_a, BCZ);
+
+            DelaunyTriangle realNeighbor = getNeighbor(m_vec_c).lookForTriangleWith(m_vec_a, m_vec_b);
+            Vector2D lastPoint = realNeighbor.getDifferentPointTo(m_vec_a,m_vec_b);
+
+            DelaunyTriangle BZL = new DelaunyTriangle(m_vec_b, toAdd, lastPoint);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            BZL.setNeighbor(lastPoint, BCZ);
+            BZL.setNeighbor(toAdd, realNeighbor.getNeighbor(m_vec_a));
+            realNeighbor.m_listOfReplacements.add(BZL);
+
+            BCZ.setNeighbor(m_vec_c, BZL);
+
+            DelaunyTriangle AZL = new DelaunyTriangle(m_vec_a, toAdd, lastPoint);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            AZL.setNeighbor(lastPoint, ACZ);
+            AZL.setNeighbor(toAdd, realNeighbor.getNeighbor(m_vec_b));
+            AZL.setNeighbor(m_vec_a, BZL);
+            realNeighbor.m_listOfReplacements.add(AZL);
+
+            BZL.setNeighbor(m_vec_b, AZL);
+            ACZ.setNeighbor(m_vec_c, AZL);
+
+            BZL.swapTestOn_At(m_vec_b, lastPoint, toAdd);
+            BCZ.swapTestOn_At(m_vec_b, m_vec_c, toAdd);
+            AZL.swapTestOn_At(m_vec_a, lastPoint, toAdd);
+            ACZ.swapTestOn_At(m_vec_a, m_vec_c, toAdd);
+
+            return true;
+        } else if (BC.equals(BO)) {
+            DelaunyTriangle BAZ = new DelaunyTriangle(m_vec_b, m_vec_a, toAdd);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            BAZ.setNeighbor(toAdd, getNeighbor(m_vec_c));
+            m_listOfReplacements.add(BAZ);
+
+            DelaunyTriangle CAZ = new DelaunyTriangle(m_vec_c, m_vec_a, toAdd);
+            //BCZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            CAZ.setNeighbor(m_vec_c, BAZ);
+            CAZ.setNeighbor(toAdd, getNeighbor(m_vec_b));
+            m_listOfReplacements.add(CAZ);
+
+            BAZ.setNeighbor(m_vec_b, CAZ);
+
+            DelaunyTriangle realNeighbor = getNeighbor(m_vec_a).lookForTriangleWith(m_vec_b, m_vec_c);
+            Vector2D lastPoint = realNeighbor.getDifferentPointTo(m_vec_b,m_vec_c);
+
+            DelaunyTriangle CZL = new DelaunyTriangle(m_vec_c, toAdd, lastPoint);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            CZL.setNeighbor(lastPoint, CAZ);
+            CZL.setNeighbor(toAdd, realNeighbor.getNeighbor(m_vec_b));
+            realNeighbor.m_listOfReplacements.add(CZL);
+            CAZ.setNeighbor(m_vec_a, CZL);
+
+            DelaunyTriangle BZL = new DelaunyTriangle(m_vec_b, toAdd, lastPoint);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            BZL.setNeighbor(lastPoint, BAZ);
+            BZL.setNeighbor(toAdd, realNeighbor.getNeighbor(m_vec_c));
+            BZL.setNeighbor(m_vec_b, CZL);
+            realNeighbor.m_listOfReplacements.add(BZL);
+
+            CZL.setNeighbor(m_vec_c, BZL);
+            BAZ.setNeighbor(m_vec_a, BZL);
+
+            BZL.swapTestOn_At(m_vec_b, lastPoint, toAdd);
+            CAZ.swapTestOn_At(m_vec_c, m_vec_a, toAdd);
+            CZL.swapTestOn_At(m_vec_c, lastPoint, toAdd);
+            BAZ.swapTestOn_At(m_vec_b, m_vec_a, toAdd);
+
+            return true;
+        } else if (CA.equals(CO)) {
+            DelaunyTriangle CBZ = new DelaunyTriangle(m_vec_c, m_vec_b, toAdd);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            CBZ.setNeighbor(toAdd, getNeighbor(m_vec_a));
+            m_listOfReplacements.add(CBZ);
+
+            DelaunyTriangle ABZ = new DelaunyTriangle(m_vec_a, m_vec_b, toAdd);
+            //BCZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            ABZ.setNeighbor(m_vec_a, CBZ);
+            ABZ.setNeighbor(toAdd, getNeighbor(m_vec_c));
+            m_listOfReplacements.add(ABZ);
+
+            CBZ.setNeighbor(m_vec_c, ABZ);
+
+            DelaunyTriangle realNeighbor = getNeighbor(m_vec_b).lookForTriangleWith(m_vec_a, m_vec_c);
+            Vector2D lastPoint = realNeighbor.getDifferentPointTo(m_vec_a,m_vec_c);
+
+            DelaunyTriangle AZL = new DelaunyTriangle(m_vec_a, toAdd, lastPoint);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            AZL.setNeighbor(lastPoint, ABZ);
+            AZL.setNeighbor(toAdd, realNeighbor.getNeighbor(m_vec_c));
+            realNeighbor.m_listOfReplacements.add(AZL);
+            ABZ.setNeighbor(m_vec_b, AZL);
+
+            DelaunyTriangle CZL = new DelaunyTriangle(m_vec_c, toAdd, lastPoint);
+            //ACZ.setNeighbor(m_vec_c, getNeighbor(m_vec_c));
+            CZL.setNeighbor(lastPoint, CBZ);
+            CZL.setNeighbor(toAdd, realNeighbor.getNeighbor(m_vec_a));
+            CZL.setNeighbor(m_vec_c, AZL);
+            realNeighbor.m_listOfReplacements.add(CZL);
+
+            AZL.setNeighbor(m_vec_a, CZL);
+            CBZ.setNeighbor(m_vec_b, CZL);
+
+            AZL.swapTestOn_At(m_vec_a, lastPoint, toAdd);
+            ABZ.swapTestOn_At(m_vec_a, m_vec_b, toAdd);
+            CZL.swapTestOn_At(m_vec_c, lastPoint, toAdd);
+            CBZ.swapTestOn_At(m_vec_c, m_vec_b, toAdd);
+
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -327,7 +465,6 @@ public class DelaunyTriangle {
     }
 
     public void drawVoronoiDiagram(LineDrawer drawer) {
-        //TODO:
         if (!this.is_Final()) {
             m_listOfReplacements.get(0).drawVoronoiDiagram(drawer);
         } else {//TODO Refactorn: Create a Method instead of doing the same three times
