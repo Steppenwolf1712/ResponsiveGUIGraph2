@@ -2,6 +2,7 @@ package uialgebra.responsiveGUIGraph;
 
 import nz.ac.auckland.alm.swing.ALMLayout;
 
+import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -11,5 +12,7 @@ public interface IResponsivePart {
 
     public double compareToSize(Dimension dim);
 
-    public ALMLayout getLayout();
+    public Dimension getDesiredSize();
+
+    public ALMLayout getLayout(JFrame frame);
 }

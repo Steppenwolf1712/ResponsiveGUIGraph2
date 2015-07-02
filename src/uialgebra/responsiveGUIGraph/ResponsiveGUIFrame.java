@@ -1,12 +1,7 @@
 package uialgebra.responsiveGUIGraph;
 
-import uialgebra.editor.UIAEditor;
-import uialgebra.responsiveGUIGraph.graph.Vector2D;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
@@ -16,6 +11,7 @@ import java.awt.event.ComponentEvent;
 public class ResponsiveGUIFrame extends JFrame {
 
     private IResponsivePart[] m_guis;
+    IResponsivePart m_currentLayout = null;
 
     public ResponsiveGUIFrame(IResponsivePart[] guis) {
         super();
@@ -53,8 +49,16 @@ public class ResponsiveGUIFrame extends JFrame {
             System.out.println("ResponsiveGUIFrame: Something went terrible wrong!");
             return;
         }
-        this.setLayout(toChoose.getLayout());
+        if (m_currentLayout != null) {
+            if (m_currentLayout.equals(toChoose))
+                return;
+            this.getContentPane().removeAll();
+        }
+        m_currentLayout = toChoose;
+        //this.setLayout(null);
+        this.setLayout(toChoose.getLayout(this));
         this.validate();
+        this.getContentPane().setSize(m_currentLayout.getDesiredSize());
     }
 
 }

@@ -85,7 +85,7 @@ class ResponsiveGUIGraph_Point implements IResponsivePart {
     }
 
     @Override
-    public ALMLayout getLayout() {
-        return (ALMLayout)this.m_view.getRootPane().getContentPane().getLayout();
+    public ALMLayout getLayout(JFrame frame) {
+        return this.m_algebra.createALEditor(frame);
     }
 }
