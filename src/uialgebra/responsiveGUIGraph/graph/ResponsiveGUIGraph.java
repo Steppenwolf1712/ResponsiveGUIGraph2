@@ -1,10 +1,15 @@
 package uialgebra.responsiveGUIGraph.graph;
 
+import com.sun.istack.internal.Nullable;
 import uialgebra.algebra.UIAlgebra;
 import uialgebra.responsiveGUIGraph.ResponsiveGUIFrame;
 import uialgebra.responsiveGUIGraph.graph.delauny.DelaunyTriangle;
 import uialgebra.responsiveGUIGraph.graph.delauny.DelaunyTriangle_Factory;
 import uialgebra.responsiveGUIGraph.graph.delauny.LineDrawer;
+import uialgebra.responsiveGUIGraph.graph.points.Abstract_Graph_Point;
+import uialgebra.responsiveGUIGraph.graph.points.AssemblyPoint;
+import uialgebra.responsiveGUIGraph.graph.points.ResponsiveGUIGraph_Point;
+import uialgebra.responsiveGUIGraph.graph.points.View_Point;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,21 +23,22 @@ import java.util.ArrayList;
 public class ResponsiveGUIGraph extends JPanel {
 
     public static final String S_UIALGEBRA_FRAME_NAME = "UIAlgebra - View";
-    private ArrayList<ResponsiveGUIGraph_Point> m_points = null;
-    private ResponsiveGUIGraph_Point m_point_selected = null;
+    private ArrayList<Abstract_Graph_Point> m_points = null;
+    private ArrayList<View_Point> m_views = null;
+    private Abstract_Graph_Point m_point_selected = null;
 
     public static final Dimension DIM_SIZE = new Dimension(750, 550);
     public static final Color COLOR_GRAPH = new Color(0, 0, 0, 180);
     public final Color COLOR_GRAPH_BACK = new Color(this.getBackground().getRed()+8, this.getBackground().getGreen()+8, this.getBackground().getBlue()+8, this.getBackground().getAlpha()-20);
-    public static final Color COLOR_POINT = new Color(0, 0, 180, 180);
     public static final Color COLOR_LINE = new Color(0, 0, 255, 255);
-    public static final Color COLOR_POINT_HIGHLIGHTED = new Color(150, 130, 0, 180);
     public static final Stroke GRAPH_STROKE = new BasicStroke(3f);
     public static final Stroke DELAUNY_STROKE = new BasicStroke(0.8f);
     public static int MAX_SCALE = 5;
     private int m_xScale = 5;
     private int m_yScale = 5;
     private Vector2D m_Scale = new Vector2D(m_xScale, m_yScale);
+    private static final double VIEW_SELECT_DISTANCE = 12.0;
+    private static final double POINT_MERGE_DISTANCE = 12.0;
     static final int I_BORDER_GAP_X = 30;
     static final int I_BORDER_GAP_Y = 20;
     static final Vector2D BORDER_GAP = new Vector2D(I_BORDER_GAP_X, I_BORDER_GAP_Y);
@@ -49,7 +55,8 @@ public class ResponsiveGUIGraph extends JPanel {
     }
 
     private void init() {
-        m_points = new ArrayList<ResponsiveGUIGraph_Point>();
+        m_points = new ArrayList<Abstract_Graph_Point>();
+        m_views = new ArrayList<View_Point>();
 
         this.setBounds(0, 0, DIM_SIZE.width, DIM_SIZE.height);
     }
@@ -71,17 +78,7 @@ public class ResponsiveGUIGraph extends JPanel {
      * @param toAdd
      */
     public void addUIAlgebra(UIAlgebra toAdd) {
-        ResponsiveGUIGraph_Point temp = new ResponsiveGUIGraph_Point(this, toAdd);
-        this.m_points.add(temp);
-
-        if (m_points.size() == 2 && m_Delauny==null)
-            calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
-                    new Vector2D(m_points.get(1).getDesiredSize()));
-        else
-        if (m_points.size() > 2 && !(m_Delauny==null))
-            addDelauny(new Vector2D(temp.getDesiredSize()));
-
-        this.repaint();
+        this.addUIAlgebra(toAdd, null);
     }
 
     /**
@@ -92,21 +89,46 @@ public class ResponsiveGUIGraph extends JPanel {
      * @param toAdd
      * @param alm_Container
      */
-    public void addUIAlgebra(UIAlgebra toAdd, JFrame alm_Container) {
+    public void addUIAlgebra(UIAlgebra toAdd,@Nullable JFrame alm_Container) {
         ResponsiveGUIGraph_Point temp = new ResponsiveGUIGraph_Point(this, toAdd, alm_Container);
-        this.m_points.add(temp);
+
+        Abstract_Graph_Point collision = null;
+        for (Abstract_Graph_Point point: m_points)
+            if (point.compareToSize(temp.getDesiredSize())<=POINT_MERGE_DISTANCE*POINT_MERGE_DISTANCE) {
+                collision = point;
+                break;
+            }
+        if (collision == null) {
+            this.m_points.add(temp);
+        } else {
+            if (collision instanceof AssemblyPoint) {
+                AssemblyPoint ap = (AssemblyPoint)collision;
+                ap.addPoint(temp);
+            } else {
+                this.m_points.remove(collision);
+                AssemblyPoint ap = new AssemblyPoint((ResponsiveGUIGraph_Point)collision, temp);
+                this.m_points.add(ap);
+            }
+            repaint();
+            return;
+        }
+
 
         if (m_points.size() == 2 && m_Delauny==null)
             calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
                     new Vector2D(m_points.get(1).getDesiredSize()));
         else
-            if (m_points.size() > 2 && !(m_Delauny==null))
+            if (m_points.size() >= 2 && !(m_Delauny==null))
                 addDelauny(new Vector2D(temp.getDesiredSize()));
 
         this.repaint();
     }
 
-    public boolean remove(ResponsiveGUIGraph_Point point) {
+    public boolean remove(Abstract_Graph_Point point) {
+        if (point instanceof View_Point) {
+            return m_views.remove(point);
+        }
+
         boolean erg = m_points.remove(point);
 
         if (erg) {
@@ -194,10 +216,14 @@ public class ResponsiveGUIGraph extends JPanel {
         g2.setColor(COLOR_GRAPH);
         g2.setStroke(GRAPH_STROKE);
 
-        g2.setColor(COLOR_POINT);
-
         //relocate all points
-        for (ResponsiveGUIGraph_Point point: m_points) {
+        for (Abstract_Graph_Point point: m_points) {
+            Vector2D temp_loc = new Vector2D(point.getDesiredSize());
+            Vector2D loc = temp_loc.divide(scale).mult(new Vector2D(1.0, -1.0)).add(relPos);//getWidth()/m_xScale+ I_BORDER_GAP_X, this.getHeight()-(temp_loc.getHeight()/m_yScale+I_BORDER_GAP_Y));
+            point.drawPoint(loc, g2);
+        }
+
+        for (View_Point point: m_views) {
             Vector2D temp_loc = new Vector2D(point.getDesiredSize());
             Vector2D loc = temp_loc.divide(scale).mult(new Vector2D(1.0, -1.0)).add(relPos);//getWidth()/m_xScale+ I_BORDER_GAP_X, this.getHeight()-(temp_loc.getHeight()/m_yScale+I_BORDER_GAP_Y));
             point.drawPoint(loc, g2);
@@ -311,49 +337,83 @@ public class ResponsiveGUIGraph extends JPanel {
         return this.DIM_SIZE;
     }
 
+    public Point getPositionInGraph(Point p) {
+        return getPositionInGraph((int)p.getX(), (int)p.getY());
+    }
+
     public Point getPositionInGraph(int x, int y) {
         Vector2D relPos = new Vector2D(-I_BORDER_GAP_X,getHeight()-I_BORDER_GAP_Y);
         Vector2D erg = relPos.add(new Point(x, -y)).mult(m_Scale);
-        Vector2D maxValues = new Vector2D(DIM_SIZE).sub(BORDER_GAP.mult(2));
-        if (new Vector2D().smallerEquals(erg) || maxValues.greaterEquals(erg))
+        Vector2D maxValues = new Vector2D(getSize()).sub(BORDER_GAP.mult(2)).mult(m_Scale);
+        if (new Vector2D().smallerEquals(erg) && maxValues.greaterEquals(erg))
             return erg;
         return new Vector2D();
     }
 
-    private int calcX(int x) {
-        int erg = (x-I_BORDER_GAP_X)*m_xScale;
-        if (erg<0)
-            return 0;
-        return erg;
-    }
-
-    private int calcY(int y) {
-        int erg = ((getHeight()-y)-I_BORDER_GAP_Y)*m_yScale;
-        if (erg<0)
-            return 0;
-        return erg;
-    }
+//    private int calcX(int x) {
+//        int erg = (x-I_BORDER_GAP_X)*m_xScale;
+//        if (erg<0)
+//            return 0;
+//        return erg;
+//    }
+//
+//    private int calcY(int y) {
+//        int erg = ((getHeight()-y)-I_BORDER_GAP_Y)*m_yScale;
+//        if (erg<0)
+//            return 0;
+//        return erg;
+//    }
 
     public void selectGUI(Point posi) {
         if (m_points.size() == 0)
             return;
-        if (m_points.size() == 1) {
-            m_point_selected = m_points.get(0);
-        } else {
-            if (m_point_selected!= null)
+        Vector2D test = new Vector2D(posi), test2;
+        for (View_Point point: m_views) {
+            test2 = new Vector2D(point.getDesiredSize());
+            if (test2.distance(test)<=VIEW_SELECT_DISTANCE*m_Scale.distance(new Vector2D())) {
+                if (m_point_selected != null) {
+                    if (!m_point_selected.equals(point))
+                        m_point_selected.setSelected(false);
+                    else
+                        return;
+                }
+
+                m_point_selected = point;
+                m_point_selected.setSelected(true);
+                repaint();
+                return;
+            }
+        }
+
+        Abstract_Graph_Point temp = getPointAtSize(posi);
+        if (m_point_selected!= null) {
+            if (!m_point_selected.equals(temp)) {
                 m_point_selected.setSelected(false);
+            } else
+                return;
+        }
+
+        m_point_selected = temp;
+        m_point_selected.setSelected(true);
+        repaint();
+    }
+
+    private Abstract_Graph_Point getPointAtSize(Point p) {
+        Abstract_Graph_Point erg = null;
+        if (m_points.size() == 1) {
+            erg = m_points.get(0);
+        } else {
             double current = Double.MAX_VALUE, test;
-            for (ResponsiveGUIGraph_Point point : m_points) {
-                test = posi.distanceSq(point.getDesiredSize().getWidth(), point.getDesiredSize().getHeight());
+            for (Abstract_Graph_Point point : m_points) {
+                test = p.distanceSq(point.getDesiredSize().getWidth(), point.getDesiredSize().getHeight());
                 //System.out.println("Distance of "+point.getDesiredSize()+"\n\tto Mouse is : "+test+"\n\twith mouse : "+posi.toString());
                 if (test < current) {
-                    m_point_selected = point;
+                    erg = point;
                     current = test;
                 }
             }
         }
-        m_point_selected.setSelected(true);
-        repaint();
+        return erg;
     }
 
     public void deselectGUI() {
@@ -364,15 +424,15 @@ public class ResponsiveGUIGraph extends JPanel {
         repaint();
     }
 
-    public void showSelectedGui(Point p) {
+    public void showSelectedGUI(Point p) {
         if (m_point_selected==null)
             return;
         m_point_selected.showGUI(p);
     }
 
-    private void calcDelauny(Vector2D point1, Vector2D point2, Vector2D point3) {
-        m_Delauny = DelaunyTriangle_Factory.createDelaunyTriangle(point1, point2, point3);
-    }
+//    private void calcDelauny(Vector2D point1, Vector2D point2, Vector2D point3) {
+//        m_Delauny = DelaunyTriangle_Factory.createDelaunyTriangle(point1, point2, point3);
+//    }
 
     private void calcDelauny(Vector2D point1, Vector2D point2) {
         m_Delauny = DelaunyTriangle_Factory.createDelaunyTriangle(point1, point2);
@@ -405,6 +465,15 @@ public class ResponsiveGUIGraph extends JPanel {
         //menu.setVisible(true);
     }
 
+    public void addViewPoint(Point p) {
+//        Vector2D erg_pos = new Vector2D(I_BORDER_GAP_X, getHeight()-I_BORDER_GAP_Y);
+//        erg_pos = new Vector2D(p).mult(new Vector2D(m_xScale,-m_yScale)).sub(erg_pos);
+        Point loc = getPositionInGraph(p);
+        View_Point temp = new View_Point(this, new Dimension((int)loc.getX(), (int)loc.getY()));
+        m_views.add(temp);
+        repaint();
+    }
+
     public boolean createResponsiveGUI() {
         if (m_points !=null && m_points.size() >=1) {
             new ResponsiveGUIFrame(this.getPoints());
@@ -412,5 +481,16 @@ public class ResponsiveGUIGraph extends JPanel {
         } else
             return false;
 
+    }
+
+    /**
+     * Opens the GUI, defined for a certain Size described by the parameter.
+     * It also returns the Container Object which will be shown, for further manipulation.
+     *
+     * @param p
+     * @return
+     */
+    public Container showGUIAtSize(Point p) {
+        return getPointAtSize(p).showGUI(p);
     }
 }

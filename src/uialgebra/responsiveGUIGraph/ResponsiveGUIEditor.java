@@ -3,7 +3,6 @@ package uialgebra.responsiveGUIGraph;
 import uialgebra.Exceptions.MalFormedUIA_Exception;
 import uialgebra.algebra.UIATokenHE;
 import uialgebra.algebra.UIAlgebra;
-import uialgebra.responsiveGUIGraph.graph.KontextMenu;
 import uialgebra.responsiveGUIGraph.graph.ResponsiveGUIGraph;
 
 import javax.swing.*;
@@ -203,7 +202,7 @@ public class ResponsiveGUIEditor extends JFrame implements ActionListener, Mouse
         if (p.getX() <= 0 || p.getY()<=0)
             return;
         if (e.getButton() == MouseEvent.BUTTON1) {
-            m_resp_Gui_Graph.showSelectedGui(e.getLocationOnScreen());
+            m_resp_Gui_Graph.showSelectedGUI(e.getLocationOnScreen());
         } else if (e.getButton() == MouseEvent.BUTTON3) {
             m_resp_Gui_Graph.showKontextMenu(e);
         }
