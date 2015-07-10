@@ -37,7 +37,8 @@ public class VariantManager extends JDialog implements ActionListener {
         this.setLayout(new BorderLayout(10,5));
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         JLabel lab = new JLabel("<html><h3>VariantenManager<h3><p>Please choose, which GUI definition shall be selected!<br>" +
-                "On top of that, it is possible to show those GUIs and remove them separately!<p></html>");
+                "On top of that, it is possible to show those GUIs and remove them separately!</p></html>");
+        lab.setPreferredSize(new Dimension(500, 120));
         this.add(lab, BorderLayout.NORTH);
 
         m_model = new VariantManager_Model(m_variants);
@@ -76,7 +77,6 @@ public class VariantManager extends JDialog implements ActionListener {
 //        buttonColumn.setMnemonic(KeyEvent.VK_D);
 
         //m_contentTable.setDefaultRenderer(ResponsiveGUIGraph_Point.class, );
-        JScrollPane sc_pane = new JScrollPane(m_contentTable);
         m_contentTable.getColumnModel().getColumn(0).setPreferredWidth(120);
         m_contentTable.getColumnModel().getColumn(1).setPreferredWidth(90);
         m_contentTable.getColumnModel().getColumn(1).setMaxWidth(90);
@@ -88,12 +88,20 @@ public class VariantManager extends JDialog implements ActionListener {
         m_contentTable.getColumnModel().getColumn(3).setMaxWidth(85);
         m_contentTable.getColumnModel().getColumn(1).setMinWidth(35);
 
+        Dimension tableSize = new Dimension(500, 100);
+        //m_contentTable.setPreferredSize(tableSize);
+
+        JScrollPane sc_pane = new JScrollPane(m_contentTable);
+        sc_pane.setMaximumSize(new Dimension(1000, 120));
+        sc_pane.setPreferredSize(tableSize);
+
         m_contentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         this.add(sc_pane, BorderLayout.CENTER);
 
 
         JPanel hori = new JPanel();
+        hori.setPreferredSize(new Dimension(500, 35));
         btn_choose = new JButton(S_CHOOSE);
         btn_choose.addActionListener(this);
         hori.add(btn_choose);
