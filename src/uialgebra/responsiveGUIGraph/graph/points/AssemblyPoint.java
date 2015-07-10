@@ -1,5 +1,6 @@
 package uialgebra.responsiveGUIGraph.graph.points;
 
+import uialgebra.responsiveGUIGraph.graph.ResponsiveGUIGraph;
 import uialgebra.responsiveGUIGraph.graph.Vector2D;
 
 import java.awt.*;
@@ -12,15 +13,17 @@ public class AssemblyPoint extends Abstract_Graph_Point {
 
     private ArrayList<ResponsiveGUIGraph_Point> m_points = null;
     private Dimension m_startingDimension = null;
+    private ResponsiveGUIGraph m_parent;
 
-    public AssemblyPoint(ResponsiveGUIGraph_Point... points) {
+    public AssemblyPoint(ResponsiveGUIGraph parent, ResponsiveGUIGraph_Point... points) {
+        m_parent = parent;
         m_points = new ArrayList<ResponsiveGUIGraph_Point>();
         m_startingDimension = points[0].getDesiredSize();
         for (ResponsiveGUIGraph_Point point: points)
             m_points.add(point);
 
-        this.color_Point = new Color(190, 0,0);
-        this.color_Point_Highlighted = new Color(240, 0,0);
+        this.color_Point = new Color(190,0,0);
+        this.color_Point_Highlighted = new Color(240,0,0);
     }
 
     public void addPoint(ResponsiveGUIGraph_Point point) {
@@ -41,8 +44,14 @@ public class AssemblyPoint extends Abstract_Graph_Point {
 
     @Override
     public Container showGUI(Point p) {
-
-        return null;
+        VariantManager vm = new VariantManager(m_parent, this, m_points.toArray(new ResponsiveGUIGraph_Point[m_points.size()]));
+        vm.setVisible(true);
+        return vm;
     }
 
+    void resetVariants(ResponsiveGUIGraph_Point[] variants) {
+        m_points = new ArrayList<ResponsiveGUIGraph_Point>();
+        for (ResponsiveGUIGraph_Point point: variants)
+            m_points.add(point);
+    }
 }

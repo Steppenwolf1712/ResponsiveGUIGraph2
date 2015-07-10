@@ -92,21 +92,26 @@ public class ResponsiveGUIGraph extends JPanel {
     public void addUIAlgebra(UIAlgebra toAdd,@Nullable JFrame alm_Container) {
         ResponsiveGUIGraph_Point temp = new ResponsiveGUIGraph_Point(this, toAdd, alm_Container);
 
+        addPoint(temp);
+    }
+
+
+    public void addPoint(ResponsiveGUIGraph_Point point) {
         Abstract_Graph_Point collision = null;
-        for (Abstract_Graph_Point point: m_points)
-            if (point.compareToSize(temp.getDesiredSize())<=POINT_MERGE_DISTANCE*POINT_MERGE_DISTANCE) {
-                collision = point;
+        for (Abstract_Graph_Point iterator: m_points)
+            if (iterator.compareToSize(point.getDesiredSize())<=POINT_MERGE_DISTANCE*POINT_MERGE_DISTANCE) {
+                collision = iterator;
                 break;
             }
         if (collision == null) {
-            this.m_points.add(temp);
+            this.m_points.add(point);
         } else {
             if (collision instanceof AssemblyPoint) {
                 AssemblyPoint ap = (AssemblyPoint)collision;
-                ap.addPoint(temp);
+                ap.addPoint(point);
             } else {
                 this.m_points.remove(collision);
-                AssemblyPoint ap = new AssemblyPoint((ResponsiveGUIGraph_Point)collision, temp);
+                AssemblyPoint ap = new AssemblyPoint(this, (ResponsiveGUIGraph_Point)collision, point);
                 this.m_points.add(ap);
             }
             repaint();
@@ -118,8 +123,8 @@ public class ResponsiveGUIGraph extends JPanel {
             calcDelauny(new Vector2D(m_points.get(0).getDesiredSize()),
                     new Vector2D(m_points.get(1).getDesiredSize()));
         else
-            if (m_points.size() >= 2 && !(m_Delauny==null))
-                addDelauny(new Vector2D(temp.getDesiredSize()));
+        if (m_points.size() >= 2 && !(m_Delauny==null))
+            addDelauny(new Vector2D(point.getDesiredSize()));
 
         this.repaint();
     }
@@ -133,7 +138,7 @@ public class ResponsiveGUIGraph extends JPanel {
 
         if (erg) {
             repaint();
-            if (m_point_selected.equals(point)) {
+            if (m_point_selected!=null && m_point_selected.equals(point)) {
                 m_point_selected = null;
             }
             if (m_points.size()>=2)
@@ -493,4 +498,5 @@ public class ResponsiveGUIGraph extends JPanel {
     public Container showGUIAtSize(Point p) {
         return getPointAtSize(p).showGUI(p);
     }
+
 }

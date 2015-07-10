@@ -47,6 +47,10 @@ public class ResponsiveGUIGraph_Point extends Abstract_Graph_Point implements IR
         return m_view.getContentPane().getPreferredSize();
     }
 
+    String getStringDefinition() {
+        return this.m_algebra.getDefinition().toString();
+    }
+
 
     public Container showGUI(Point p) {
         this.m_view.setLocation((int)p.getX()-(this.m_view.getWidth()/2),(int)p.getY()-(this.m_view.getHeight()/2));
