@@ -1,5 +1,6 @@
 package uialgebra.responsiveGUIGraph.graph.points;
 
+import javafx.scene.control.SelectionMode;
 import uialgebra.responsiveGUIGraph.graph.ResponsiveGUIGraph;
 
 import javax.swing.*;
@@ -64,7 +65,6 @@ public class VariantManager extends JDialog implements ActionListener {
         {
             public void actionPerformed(ActionEvent e)
             {
-                System.out.println("IWAS????");
                 JTable table = (JTable)e.getSource();
                 int modelRow = Integer.valueOf( e.getActionCommand() );
                 ResponsiveGUIGraph_Point point = ((VariantManager_Model) table.getModel()).getVariant(modelRow);//removeRow(modelRow);//removeVariant(modelRow);
@@ -88,6 +88,8 @@ public class VariantManager extends JDialog implements ActionListener {
         m_contentTable.getColumnModel().getColumn(3).setMaxWidth(85);
         m_contentTable.getColumnModel().getColumn(1).setMinWidth(35);
 
+        m_contentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         this.add(sc_pane, BorderLayout.CENTER);
 
 
@@ -110,7 +112,13 @@ public class VariantManager extends JDialog implements ActionListener {
                 m_parent.remove(m_ap);
                 m_parent.addPoint(m_model.getVariant(0));
             } else {
-                m_ap.resetVariants(m_model.getVariants());
+                int i = m_contentTable.getSelectedRow();
+                if (i>=0) {
+                    m_parent.remove(m_ap);
+                    m_parent.addPoint(m_model.getVariant(i));
+                } else {
+                    m_ap.resetVariants(m_model.getVariants());
+                }
             }
             dispose();
         } else if (e.getSource().equals(btn_cancel)) {
